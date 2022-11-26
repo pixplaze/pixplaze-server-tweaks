@@ -6,17 +6,6 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 
 public interface ServerTweak extends Listener {
-    @Deprecated(forRemoval = true)
-    default void enable() {
-        PixplazeServerTweaks.getInstance()
-                .ifPresent(plugin -> plugin.registerListener(this));
-
-    }
-
-    @Deprecated(forRemoval = true)
-    default void disable() {
-        HandlerList.unregisterAll(this);
-    }
 
     void setEnabled(final boolean status);
 

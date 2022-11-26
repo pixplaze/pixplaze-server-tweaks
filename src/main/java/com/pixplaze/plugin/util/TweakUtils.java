@@ -27,4 +27,16 @@ public class TweakUtils {
     public static String statusFromBoolean(final boolean status) {
         return statusFromBoolean(status, false);
     }
+
+    public static boolean booleanFromStatus(final String status) {
+        boolean result;
+        switch (status.toLowerCase()) {
+            case "on", "enable" -> result = true;
+            case "off", "disable" -> result = false;
+            default -> throw new RuntimeException(
+                    "Illegal value for tweak status: \"%s\"! Expected [\"on\" | \"enable\" | \"off\" | \"disable\"]"
+                            .formatted(status));
+        }
+        return result;
+    }
 }

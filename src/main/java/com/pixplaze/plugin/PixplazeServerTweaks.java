@@ -1,27 +1,20 @@
 package com.pixplaze.plugin;
 
-import com.pixplaze.plugin.exception.TweakConfigurationException;
-import com.pixplaze.plugin.tweak.HelloMessage;
-import com.pixplaze.plugin.tweak.PermeableItemFrames;
-import com.pixplaze.plugin.tweak.ServerTweak;
-import com.pixplaze.plugin.tweak.TweakCommands;
+import com.pixplaze.plugin.tweak.*;
+import net.kyori.adventure.text.Component;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.IOException;
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.logging.Logger;
 
 public class PixplazeServerTweaks extends JavaPlugin {
 
     private final Logger logger;
     private final FileConfiguration config;
-
-    private final Set<ServerTweak> tweaks;
+    private final TweakManager tweakManager;
+    private final TweakCommandExecutor tweakCommandExecutor;
     private static PixplazeServerTweaks instance;
 
 
@@ -32,10 +25,8 @@ public class PixplazeServerTweaks extends JavaPlugin {
                 .copyDefaults(true)
                 .configuration();
         instance = this;
-        tweaks = new HashSet<>(Set.of(
-                new PermeableItemFrames(),
-                new HelloMessage()
-        ));
+        tweakManager = new TweakManager(this);
+        tweakCommandExecutor = new TweakCommandExecutor(tweakManager);
     }
 
     public static Optional<PixplazeServerTweaks> getInstance() {
@@ -45,39 +36,11 @@ public class PixplazeServerTweaks extends JavaPlugin {
     @Override
     public void onEnable() {
         saveDefaultConfig();
-        loadServerTweaks();
-
+        tweakManager.loadTweaks(config);
         Objects.requireNonNull(getCommand("tweak"))
-                .setExecutor(new TweakCommands());
-    }
-
-    private void loadServerTweaks() {
-        logger.warning("Reading server tweak list...");
-        tweaks.forEach(tweak -> {
-            var tweakName = tweak.getTweakName();
-            var enabledConf = config.getConfigurationSection("tweaks");
-            var isTweakEnabled = Optional.ofNullable(enabledConf)
-                    .orElseThrow(TweakConfigurationException::new)
-                    .getBoolean(tweakName);
-
-            if (isTweakEnabled) {
-                tweak.enable();
-                registerListener(tweak);
-            }
-
-            logger.warning("\"%s\" tweak is loaded %s.".formatted(tweakName, isTweakEnabled ? "and enabled" : "but disabled"));
-        });
-    }
-
-    public void registerListener(Listener listener) {
-        this.getServer().getPluginManager().registerEvents(listener, this);
+                .setExecutor(tweakCommandExecutor);
     }
 
     @Override
     public void onDisable() {}
-
-    public Set<ServerTweak> getServerTweaks() {
-        return this.tweaks;
-    }
-
 }

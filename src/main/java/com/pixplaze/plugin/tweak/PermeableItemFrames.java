@@ -7,16 +7,16 @@ import org.bukkit.block.EnderChest;
 import org.bukkit.block.ShulkerBox;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Shulker;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.InventoryHolder;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.Optional;
 
-public final class PermeableItemFrames extends AbstractTweak {
+public final class PermeableItemFrames implements ServerTweak {
+
+    private boolean isEnabled = false;
 
     @EventHandler
     private void handler(PlayerInteractEntityEvent e) {
@@ -33,8 +33,10 @@ public final class PermeableItemFrames extends AbstractTweak {
                     .getState();
 
             if (block instanceof ShulkerBox shulker && !shulker.isOpen()) {
+                e.setCancelled(true);
                 player.sendMessage("Shulker box is opened!");
                 player.openInventory(shulker.getInventory());
+
                 return;
             }
 
@@ -95,15 +97,13 @@ public final class PermeableItemFrames extends AbstractTweak {
                 (isPlayerHandEmpty || !isPlayerSneaking);
     }
 
-    private void verboseTweakObject() {
-        var component = Component.text();
-        PixplazeServerTweaks.getInstance()
-                .ifPresent(plugin -> HandlerList.getRegisteredListeners(plugin).forEach(listener -> {
-                    component.append(Component.text("%s: @%s".formatted(
-                            ((ServerTweak) listener.getListener()).getClass().getSimpleName(), System.identityHashCode(listener.getListener()))
-                    ));
+    @Override
+    public void setEnabled(boolean status) {
+        this.isEnabled = status;
+    }
 
-                    plugin.getServer().sendMessage(component);
-                }));
+    @Override
+    public boolean isEnabled() {
+        return this.isEnabled;
     }
 }
