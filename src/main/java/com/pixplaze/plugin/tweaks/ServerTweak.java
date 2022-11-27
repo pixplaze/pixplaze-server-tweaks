@@ -1,8 +1,6 @@
-package com.pixplaze.plugin.tweak;
+package com.pixplaze.plugin.tweaks;
 
-import com.pixplaze.plugin.PixplazeServerTweaks;
 import org.apache.commons.lang.StringUtils;
-import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 
 public interface ServerTweak extends Listener {
@@ -10,6 +8,8 @@ public interface ServerTweak extends Listener {
     void setEnabled(final boolean status);
 
     boolean isEnabled();
+
+    String getDescription();
 
     default String getTweakName() {
         var tweakClassName = getClass().getSimpleName();

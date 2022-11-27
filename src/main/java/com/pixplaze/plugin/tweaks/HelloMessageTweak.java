@@ -1,9 +1,9 @@
-package com.pixplaze.plugin.tweak;
+package com.pixplaze.plugin.tweaks;
 
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerJoinEvent;
 
-public final class HelloMessage implements ServerTweak {
+public final class HelloMessageTweak implements ServerTweak {
 
     private boolean isEnabled = false;
 
@@ -21,5 +21,10 @@ public final class HelloMessage implements ServerTweak {
     @Override
     public boolean isEnabled() {
         return isEnabled;
+    }
+
+    @Override
+    public String getDescription() {
+        return "Tweak for sending hello message to joined player";
     }
 }

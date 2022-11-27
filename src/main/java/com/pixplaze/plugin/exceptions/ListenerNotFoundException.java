@@ -1,4 +1,4 @@
-package com.pixplaze.plugin.exception;
+package com.pixplaze.plugin.exceptions;
 
 public class ListenerNotFoundException extends RuntimeException {
     public ListenerNotFoundException() {

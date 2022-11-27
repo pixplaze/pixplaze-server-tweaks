@@ -6,7 +6,7 @@
 
     <groupId>com.pixplaze.plugin</groupId>
     <artifactId>pixplaze-server-tweaks</artifactId>
-    <version>0.0.1-indev</version>
+    <version>0.1.0-indev</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>

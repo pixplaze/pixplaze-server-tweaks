@@ -1,7 +1,8 @@
 package com.pixplaze.plugin;
 
-import com.pixplaze.plugin.tweak.*;
-import net.kyori.adventure.text.Component;
+import com.pixplaze.plugin.commands.TweakCommandExecutor;
+import com.pixplaze.plugin.commands.TweakTabCompleter;
+import com.pixplaze.plugin.tweaks.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -9,7 +10,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger;
 
-public class PixplazeServerTweaks extends JavaPlugin {
+public final class PixplazeServerTweaks extends JavaPlugin {
 
     private final Logger logger;
     private final FileConfiguration config;
@@ -37,8 +38,9 @@ public class PixplazeServerTweaks extends JavaPlugin {
     public void onEnable() {
         saveDefaultConfig();
         tweakManager.loadTweaks(config);
-        Objects.requireNonNull(getCommand("tweak"))
-                .setExecutor(tweakCommandExecutor);
+        var command = Objects.requireNonNull(getCommand("tweak"));
+        command.setExecutor(tweakCommandExecutor);
+        command.setTabCompleter(new TweakTabCompleter(tweakManager));
     }
 
     @Override

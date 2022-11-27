@@ -1,16 +1,14 @@
-package com.pixplaze.plugin.tweak;
+package com.pixplaze.plugin.tweaks;
 
 import com.pixplaze.plugin.PixplazeServerTweaks;
-import com.pixplaze.plugin.exception.TweakConfigurationException;
-import com.pixplaze.plugin.exception.TweakNotFoundException;
+import com.pixplaze.plugin.exceptions.TweakConfigurationException;
+import com.pixplaze.plugin.exceptions.TweakNotFoundException;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.RegisteredListener;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static org.bukkit.Bukkit.getPluginManager;
@@ -18,31 +16,28 @@ import static org.bukkit.Bukkit.getPluginManager;
 public final class TweakManager {
 
     private final PixplazeServerTweaks plugin;
-    private final Set<ServerTweak> availableTweaks;
-    private final Map<String, ServerTweak> loadedTweaks;
+    private final Set<ServerTweak> loadedTweaks;
 
     public TweakManager(PixplazeServerTweaks plugin) {
         this(plugin, new HashSet<>(Set.of(
-                new PermeableItemFrames(),
-                new HelloMessage()
+                new PermeableItemFramesTweak(),
+                new HelloMessageTweak()
         )));
     }
 
     private TweakManager(PixplazeServerTweaks plugin, Set<ServerTweak> tweaks) {
         this.plugin = plugin;
-        this.availableTweaks = tweaks;
-        this.loadedTweaks = new HashMap<>();
+        this.loadedTweaks = tweaks;
     }
 
     public void loadTweaks(FileConfiguration fileConfiguration) {
         var config = Optional.ofNullable(fileConfiguration.getConfigurationSection("tweaks"))
                 .orElseThrow(TweakConfigurationException::new);
 
-        availableTweaks.forEach(tweak -> {
+        loadedTweaks.forEach(tweak -> {
             var tweakName = tweak.getTweakName();
             var isTweakEnabled = config.getBoolean(tweakName);
             if (isTweakEnabled) enableTweak(tweak);
-            loadedTweaks.put(tweakName, tweak);
         });
 
         verboseTweaks();
@@ -77,22 +72,27 @@ public final class TweakManager {
         return tweak;
     }
 
-    private void onTweakNotFound() {
-        throw new TweakNotFoundException();
-    }
-
     public Set<ServerTweak> getLoadedTweaks() {
-        return availableTweaks;
+        return loadedTweaks;
     }
 
     public Set<ServerTweak> getEnabledTweaks() {
-        return availableTweaks.stream()
+        return loadedTweaks.stream()
                 .filter(ServerTweak::isEnabled)
                 .collect(Collectors.toSet());
     }
 
+    public Set<ServerTweak> getDisabledTweaks() {
+        return loadedTweaks.stream()
+                .filter(tweak -> !tweak.isEnabled())
+                .collect(Collectors.toSet());
+    }
+
     public ServerTweak getTweak(String tweakName) {
-        return loadedTweaks.get(tweakName);
+        return loadedTweaks.stream()
+                .filter(tweak -> tweak.getTweakName().equalsIgnoreCase(tweakName))
+                .findFirst()
+                .orElseThrow(() -> new TweakNotFoundException(tweakName));
     }
 
     private void saveConfig(String tweakName, boolean status) {
@@ -104,7 +104,7 @@ public final class TweakManager {
         var listeners = HandlerList.getRegisteredListeners(plugin).stream()
                 .map(RegisteredListener::getListener)
                 .toList();
-        verboseTweakObjects(availableTweaks, "Available tweaks");
+        verboseTweakObjects(loadedTweaks, "Available tweaks");
         verboseTweakObjects(listeners, "Listeners");
     }
 

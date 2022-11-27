@@ -1,20 +1,17 @@
-package com.pixplaze.plugin.tweak;
+package com.pixplaze.plugin.tweaks;
 
-import com.pixplaze.plugin.PixplazeServerTweaks;
-import net.kyori.adventure.text.Component;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.EnderChest;
 import org.bukkit.block.ShulkerBox;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.InventoryHolder;
 
 import java.util.Optional;
 
-public final class PermeableItemFrames implements ServerTweak {
+public final class PermeableItemFramesTweak implements ServerTweak {
 
     private boolean isEnabled = false;
 
@@ -105,5 +102,13 @@ public final class PermeableItemFrames implements ServerTweak {
     @Override
     public boolean isEnabled() {
         return this.isEnabled;
+    }
+
+    @Override
+    public String getDescription() {
+        return """
+                This tweak allows you to click on a frame to use the block it's
+                attached to. For example, by clicking on a frame
+                attached to a chest, the chest will open.""";
     }
 }

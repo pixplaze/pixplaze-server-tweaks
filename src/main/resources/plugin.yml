@@ -7,4 +7,5 @@ authors: [ Ki$$Ka, emberati ]
 commands:
   tweak:
     description: Handling with pixplaze server tweaks
-    usage: /tweak <option> <value>
+    usage: /tweak <option> <tweak-name>
+    aliases: twk
