@@ -2,5 +2,6 @@ tweaks:
   permeable-item-frames: true
   creeper-not-destroy-blocks: false
   hello-message: true
+  load-named-textures: false
 
 

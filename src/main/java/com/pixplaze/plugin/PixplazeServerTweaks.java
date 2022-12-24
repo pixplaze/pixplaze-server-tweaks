@@ -36,7 +36,7 @@ public final class PixplazeServerTweaks extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        saveDefaultConfig();
+        this.saveDefaultConfig();
         tweakManager.loadTweaks(config);
         var command = Objects.requireNonNull(getCommand("tweak"));
         command.setExecutor(tweakCommandExecutor);

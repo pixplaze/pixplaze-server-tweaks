@@ -3,12 +3,14 @@ package com.pixplaze.plugin.tweaks;
 import com.pixplaze.plugin.PixplazeServerTweaks;
 import com.pixplaze.plugin.exceptions.TweakConfigurationException;
 import com.pixplaze.plugin.exceptions.TweakNotFoundException;
-import net.kyori.adventure.text.Component;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.RegisteredListener;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.bukkit.Bukkit.getPluginManager;
@@ -21,7 +23,8 @@ public final class TweakManager {
     public TweakManager(PixplazeServerTweaks plugin) {
         this(plugin, new HashSet<>(Set.of(
                 new PermeableItemFramesTweak(),
-                new HelloMessageTweak()
+                new HelloMessageTweak(),
+                new LoadNamedTexturesTweak(plugin)
         )));
     }
 
@@ -109,14 +112,14 @@ public final class TweakManager {
     }
 
     private void verboseTweakObjects(Collection<?> tweaks, String title) {
-        var component = Component.text(title + ": ");
+        var component = title + ": ";
 
         tweaks.forEach(listener -> {
             var name = listener.getClass().getSimpleName();
             var hashCode = Integer.toHexString(System.identityHashCode(listener));
-            var message= component.append(Component.text("%s: @%s".formatted(name, hashCode)));
+            var message = component + "%s: @%s".formatted(name, hashCode);
 
-            plugin.getServer().sendMessage(message);
+            plugin.getServer().getConsoleSender().sendMessage(message);
         });
     }
 }
