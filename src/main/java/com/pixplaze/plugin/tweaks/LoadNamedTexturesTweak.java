@@ -1,9 +1,9 @@
 package com.pixplaze.plugin.tweaks;
 
-import com.destroystokyo.paper.profile.ProfileProperty;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.pixplaze.plugin.PixplazeServerTweaks;
+import com.pixplaze.plugin.reflected.SkinChangeProvider;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Color;
@@ -11,9 +11,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.profile.PlayerProfile;
 import org.bukkit.profile.PlayerTextures;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
 import java.io.IOException;
@@ -22,7 +20,6 @@ import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class LoadNamedTexturesTweak implements ServerTweak, Listener {
@@ -42,86 +39,59 @@ public class LoadNamedTexturesTweak implements ServerTweak, Listener {
     }
 
     @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent e) {
+    public void onPlayerJoin(PlayerJoinEvent e) throws IOException, InterruptedException {
         var player = e.getPlayer();
-
         setPlayerTextures(player);
+        player.hidePlayer(plugin, player);
     }
 
-    private void setPlayerTextures(Player player) {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                try {
-                    var username = player.getName();
-                    var profile = player.getPlayerProfile();
-                    var textures = profile.getTextures();
-                    var uuid = fetchUsernameToUuid(username);
-                    var base64Textures = fetchUuidToBase64Textures(uuid);
-                    var jsonTextures = gson.fromJson(Base64Coder.decodeString(base64Textures), JsonObject.class)
-                            .get("textures").getAsJsonObject();
+    private void setPlayerTextures(Player player) throws IOException, InterruptedException {
+        var username = player.getName();
+        var profile = player.getPlayerProfile();
+        var textures = profile.getTextures();
+        var uuid = fetchUsernameToUuid(username);
+        var base64Textures = fetchUuidToBase64Textures(uuid);
+        var jsonTextures = gson.fromJson(Base64Coder.decodeString(base64Textures), JsonObject.class)
+                .get("textures").getAsJsonObject();
 
-                    plugin.getServer().sendMessage(Component.text(jsonTextures.toString())
-                            .color(TextColor.color(Color.RED.asRGB())));
+        var jsonSkin = jsonTextures.get("SKIN").getAsJsonObject();
+        var jsonCape = jsonTextures.get("CAPE").getAsJsonObject();
 
-                    var jsonSkin = jsonTextures.get("SKIN").getAsJsonObject();
-                    var jsonCape = jsonTextures.get("CAPE").getAsJsonObject();
+        var skinUrl = new URL(jsonSkin.get("url").getAsString());
+        var skinModel = jsonSkin.get("metadata") == null ?
+                PlayerTextures.SkinModel.CLASSIC :
+                PlayerTextures.SkinModel.valueOf(
+                        jsonSkin.get("metadata").getAsJsonObject()
+                                .get("model").getAsString()
+                                .toUpperCase());
+        var capeUrl = new URL(jsonCape.get("url").getAsString());
 
-                    var skinUrl = new URL(jsonSkin.get("url").getAsString());
-                    var skinModel = jsonSkin.get("metadata") == null ?
-                            PlayerTextures.SkinModel.CLASSIC :
-                            PlayerTextures.SkinModel.valueOf(
-                                    jsonSkin.get("metadata").getAsJsonObject()
-                                            .get("model").getAsString()
-                                            .toUpperCase());
-//                    var skinModel = PlayerTextures.SkinModel.valueOf(
-//                            jsonSkin.get("metadata").getAsJsonObject()
-//                                    .get("model").getAsString()
-//                                    .toUpperCase());
-                    var capeUrl = new URL(jsonCape.get("url").getAsString());
+        SkinChangeProvider.changeSkin(player, base64Textures);
 
-                    new BukkitRunnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                textures.setSkin(skinUrl, skinModel);
-                                textures.setCape(capeUrl);
-                                profile.setTextures(textures);
-                                player.setPlayerProfile(profile);
-//                                Objects.requireNonNull(plugin.getServer().getPlayer(username)).setPlayerProfile(profile);
-//                                Objects.requireNonNull(plugin.getServer().getPlayer(username)).getPlayerProfile().update();
-
-//                                Objects.requireNonNull(plugin.getServer().getPlayer(username))
-//                                        .getPlayerProfile().getProperties()
-//                                        .forEach(prop -> plugin.getServer().sendMessage(Component.text(
-//                                                Base64Coder.decodeString(prop.getValue())
-//                                        ).color(TextColor.color(Color.GREEN.asRGB()))));
-
-//                                player.setPlayerProfile(profile);
-//                                player.getPlayerProfile().setTextures();
-//                                profile.getProperties().add(new ProfileProperty());
-
-                            } catch (Exception exx) {
-                                throw new RuntimeException(exx);
-                            }
-                        }
-                    }.runTask(plugin);
-
-                    plugin.getServer().sendMessage(Component.text("Player %s textures is empty: %s, is signed: %s, skin url: %s".
-                            formatted(player.getName(), textures.isEmpty(), textures.isSigned(), skinUrl.toString())));
-                    plugin.getServer().sendMessage(Component.text(Base64Coder.encodeString(jsonSkin.toString())));
-//                    plugin.getServer().sendMessage(Component.text(Base64Coder.decodeString(player.getPlayerProfile().isComplete())));
-                    plugin.getServer().sendMessage(Component.text("Set textures: %s".
-                            formatted(player.getPlayerProfile().getTextures().getSkin())));
+//        textures.setSkin(skinUrl, skinModel);
+//        textures.setCape(capeUrl);
+//
+//        profile.setTextures(textures);
+//        profile.hasTextures();
+//        player.setPlayerProfile(profile);
 
 
-                } catch (Exception ex) {
-//                    plugin.getServer().sendMessage(Component.text(ex.getMessage())
-//                            .color(TextColor.color(Color.RED.asRGB())));
-                    throw new RuntimeException(ex);
-                }
-            }
-        }.runTaskAsynchronously(plugin);
+        plugin.getServer().sendMessage(Component.text(("""
+                Player %s textures is empty: %s,
+                is signed: %s,
+                is profile complete: %s,
+                profile has textures: %s,
+                skin url: %s""").
+                formatted(
+                        plugin.getServer().getPlayer(player.getName()).getName(),
+                        plugin.getServer().getPlayer(player.getName()).getPlayerProfile().getTextures().isEmpty(),
+                        plugin.getServer().getPlayer(player.getName()).getPlayerProfile().getTextures().isSigned(),
+                        plugin.getServer().getPlayer(player.getName()).getPlayerProfile().isComplete(),
+                        plugin.getServer().getPlayer(player.getName()).getPlayerProfile().hasTextures(),
+                        plugin.getServer().getPlayer(player.getName()).getPlayerProfile().getTextures().getSkin())));
+        plugin.getServer().sendMessage(Component.text(Base64Coder.encodeString(jsonSkin.toString())));
+        plugin.getServer().sendMessage(Component.text("Set textures: %s".
+                formatted(player.getPlayerProfile().getTextures().getSkin())));
     }
 
     private String fetchUsernameToUuid(String username) throws IOException, InterruptedException {

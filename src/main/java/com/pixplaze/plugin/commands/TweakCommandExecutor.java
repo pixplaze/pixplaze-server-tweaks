@@ -4,6 +4,7 @@ import com.pixplaze.plugin.PixplazeServerTweaks;
 import com.pixplaze.plugin.tweaks.TweakManager;
 import com.pixplaze.plugin.util.TextComponentUtils;
 
+import net.kyori.adventure.text.Component;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;

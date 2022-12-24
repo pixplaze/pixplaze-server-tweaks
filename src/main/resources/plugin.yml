@@ -9,3 +9,5 @@ commands:
     description: Handling with pixplaze server tweaks
     usage: /tweak <option> <tweak-name>
     aliases: twk
+  what:
+    description: What the fuck is going on?!
