@@ -6,6 +6,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
+import static com.pixplaze.plugin.reflected.StringUtils.toStringMethodArguments;
+
 public final class ReflectionProvider {
 
     private ReflectionProvider() {}
@@ -36,18 +38,15 @@ public final class ReflectionProvider {
     }
 
     public static Object tryCreateObjectByStrongTypes(Class<?> type, Object ... arguments) {
-        var countOfArguments = arguments.length / 2;
-        var splitTypesAndObjects = splitTypesAndArguments(arguments);
-        var argumentTypes = splitTypesAndObjects[0];
-        var argumentObjects = splitTypesAndObjects[1];
-
-
+        var argumentList = ArgumentList.split(arguments);
+        var argumentTypes = argumentList.getTypes();
+        var argumentObjects = argumentList.getArguments();
 
         return tryCreateObjectByStrongTypes0(type, argumentTypes, argumentObjects);
     }
 
-    protected static Object tryCreateObjectByStrongTypes0(Class<?> type, Class<?>[] argumentTypes, Object[] arguments) {
-        var constructorDisplayName = StringUtils.toStringMethodArguments(type.getSimpleName(), argumentTypes);
+    static Object tryCreateObjectByStrongTypes0(Class<?> type, Class<?>[] argumentTypes, Object[] arguments) {
+        var constructorDisplayName = toStringMethodArguments(type.getSimpleName(), argumentTypes);
 
         try {
 //            Arrays.stream(type.getConstructors()).forEach(constructor -> {
@@ -72,7 +71,7 @@ public final class ReflectionProvider {
     }
 
     public static Object tryInvokeMethod(Object object, Method method, Object ... arguments) {
-        var methodDisplayName = StringUtils.toStringMethodArguments(method.getName(), arguments);
+        var methodDisplayName = toStringMethodArguments(method.getName(), arguments);
 
         try {
             return method.invoke(object, arguments);
@@ -90,7 +89,7 @@ public final class ReflectionProvider {
         for (var i = 0; i < arguments.length; i++) {
             argumentsTypes[i] = arguments[i].getClass();
         }
-        var methodDisplayName = StringUtils.toStringMethodArguments(methodName, argumentsTypes);
+        var methodDisplayName = toStringMethodArguments(methodName, argumentsTypes);
 
         try {
             return object.getClass().getDeclaredMethod(methodName, argumentsTypes).invoke(object, arguments);

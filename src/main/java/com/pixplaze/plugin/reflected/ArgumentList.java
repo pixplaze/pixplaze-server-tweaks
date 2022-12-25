@@ -1,14 +1,18 @@
 package com.pixplaze.plugin.reflected;
 
+import static com.pixplaze.plugin.reflected.StringUtils.toStringTypes;
+
 public class ArgumentList {
     private boolean strongTypeMatch = false;
     private final String wrongLengthMessage = "Count of types and arguments must be equals! Received: types[%d], arguments[%d]";
     private Class<?>[] types = null;
     private Object[] arguments = null;
 
-    public ArgumentList strongTypeMatch(boolean strongTypeMatch) {
-        this.strongTypeMatch = strongTypeMatch;
-        return this;
+    public ArgumentList() {}
+
+    private ArgumentList(Class<?>[] types, Object[] arguments) {
+        this.types = types;
+        this.arguments = arguments;
     }
 
     public ArgumentList put(Class<?>[] types, Object[] arguments) {
@@ -23,22 +27,20 @@ public class ArgumentList {
         return this;
     }
 
-    public ArgumentList split(Object ... typesAndArguments) {
+    public static ArgumentList split(Object ... typesAndArguments) {
         if (typesAndArguments.length % 2 != 0) {
             throw new IllegalArgumentException(
                     "Еhe number of elements in the total array of types and arguments must be the same!" +
-                    "Provided:%n%s".formatted());
+                    "Provided:%n%s".formatted(toStringTypes(typesAndArguments)));
         }
         var countOfArguments = typesAndArguments.length / 2;
         var argumentTypes = new Class<?>[countOfArguments];
         var argumentObjects = new Object[countOfArguments];
         for (int i = 0, j = countOfArguments; i < countOfArguments; i++, j++) {
-            argumentTypes[i] = (Class<?>) arguments[i];
-            argumentObjects[i] = arguments[j];
+            argumentTypes[i] = (Class<?>) typesAndArguments[i];
+            argumentObjects[i] = typesAndArguments[j];
         }
-        this.types = argumentTypes;
-        this.arguments = argumentObjects;
-        return this;
+        return new ArgumentList(argumentTypes, argumentObjects);
     }
 
     public ArgumentList putTypes(Class<?> ... types) {
@@ -59,6 +61,20 @@ public class ArgumentList {
                     wrongLengthMessage.formatted(types.length, arguments.length));
         }
         return this;
+    }
+
+    public Class<?>[] getTypes() {
+        if (getTypesCount() == 0) {
+            return new Class<?>[0];
+        }
+        return this.types;
+    }
+
+    public Object[] getArguments() {
+        if (getArgumentsCount() == 0) {
+            return new Object[0];
+        }
+        return this.arguments;
     }
 
     public boolean isCompleted() {

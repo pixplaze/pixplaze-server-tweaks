@@ -3,6 +3,27 @@ package com.pixplaze.plugin.reflected;
 import java.util.Arrays;
 
 public class StringUtils {
+
+    public static String toStringMethodArguments(String methodName, Object[] arguments) {
+        return toStringMethodArguments(methodName, arguments, false);
+    }
+
+    public static String toStringMethodArguments(String methodName, Object[] argumentTypes, boolean verbose) {
+        return Arrays.stream(argumentTypes)
+                .map(obj -> {
+                    if (verbose) {
+                        return obj.getClass().getTypeName();
+                    } else {
+                        var classTypeName = obj.getClass().getSimpleName();
+                        var splitClassTypeName = classTypeName.split("\\.");
+                        return splitClassTypeName[splitClassTypeName.length - 1];
+                    }
+                })
+                .reduce((curr, next) -> curr + ", " + next)
+                .map(args -> "%s(%s)".formatted(methodName, args))
+                .orElse("%s()".formatted(methodName));
+    }
+
     public static String toStringMethodArguments(String methodName, Class<?>[] argumentTypes) {
         return toStringMethodArguments(methodName, argumentTypes, false);
     }
@@ -13,7 +34,7 @@ public class StringUtils {
                     if (verbose) {
                         return classType.getTypeName();
                     } else {
-                        var classTypeName = classType.getTypeName();
+                        var classTypeName = classType.getSimpleName();
                         var splitClassTypeName = classTypeName.split("\\.");
                         return splitClassTypeName[splitClassTypeName.length - 1];
                     }
