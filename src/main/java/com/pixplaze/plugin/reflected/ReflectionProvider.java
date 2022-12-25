@@ -3,9 +3,12 @@ package com.pixplaze.plugin.reflected;
 import com.pixplaze.plugin.reflected.exceptins.ProvidedClassException;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 
 public final class ReflectionProvider {
+
+    private ReflectionProvider() {}
 
     public static Class<?> tryCreateClass(String className) {
         try {
@@ -34,21 +37,17 @@ public final class ReflectionProvider {
 
     public static Object tryCreateObjectByStrongTypes(Class<?> type, Object ... arguments) {
         var countOfArguments = arguments.length / 2;
-        var argumentTypes = new Class<?>[countOfArguments];
-        var argumentObjects = new Object[countOfArguments];
+        var splitTypesAndObjects = splitTypesAndArguments(arguments);
+        var argumentTypes = splitTypesAndObjects[0];
+        var argumentObjects = splitTypesAndObjects[1];
 
-        for (int i = 0, j = countOfArguments; i < countOfArguments; i++, j++) {
-            argumentTypes[i] = (Class<?>) arguments[i];
-            argumentObjects[i] = arguments[j];
-//            plugin.getServer().sendMessage(Component.text(argumentTypes[i].getName()));
-//            plugin.getServer().sendMessage(Component.text(argumentObjects[i].getClass().getName()));
-        }
+
 
         return tryCreateObjectByStrongTypes0(type, argumentTypes, argumentObjects);
     }
 
     protected static Object tryCreateObjectByStrongTypes0(Class<?> type, Class<?>[] argumentTypes, Object[] arguments) {
-        var constructorDisplayName = toStringMethodArguments(type.getSimpleName(), argumentTypes);
+        var constructorDisplayName = StringUtils.toStringMethodArguments(type.getSimpleName(), argumentTypes);
 
         try {
 //            Arrays.stream(type.getConstructors()).forEach(constructor -> {
@@ -72,12 +71,26 @@ public final class ReflectionProvider {
         }
     }
 
+    public static Object tryInvokeMethod(Object object, Method method, Object ... arguments) {
+        var methodDisplayName = StringUtils.toStringMethodArguments(method.getName(), arguments);
+
+        try {
+            return method.invoke(object, arguments);
+        } catch (IllegalAccessException e) {
+            throw new ProvidedClassException("Can not access not public method %s of provided class %s"
+                    .formatted(methodDisplayName, object.getClass().getName()));
+        } catch (InvocationTargetException e) {
+            throw new ProvidedClassException("Exception while invoking provided method %s. Cause %s: %s"
+                    .formatted(methodDisplayName, e.getCause().getClass().getSimpleName(), e.getCause().getMessage()));
+        }
+    }
+
     public static Object tryInvokeMethod(Object object, String methodName, Object ... arguments) {
         var argumentsTypes = new Class<?>[arguments.length];
         for (var i = 0; i < arguments.length; i++) {
             argumentsTypes[i] = arguments[i].getClass();
         }
-        var methodDisplayName = toStringMethodArguments(methodName, argumentsTypes);
+        var methodDisplayName = StringUtils.toStringMethodArguments(methodName, argumentsTypes);
 
         try {
             return object.getClass().getDeclaredMethod(methodName, argumentsTypes).invoke(object, arguments);
@@ -91,6 +104,20 @@ public final class ReflectionProvider {
             throw new ProvidedClassException("No method %s in provided class %s"
                     .formatted(methodDisplayName, object.getClass().getName()));
         }
+    }
+
+    public static Object tryInvokeMethodByMethodArgumentTypes(Object object, Class<?>[] argumentTypes) {
+        var objectClass = object.getClass();
+        var objectMethods = objectClass.getMethods();
+        for (var method : objectMethods) {
+            var methodParameterTypes = method.getParameterTypes();
+            if (method.getParameterCount() != argumentTypes.length &&
+                Arrays.equals(methodParameterTypes, argumentTypes)) {
+                return method;
+            }
+        }
+        throw new ProvidedClassException("No method with parameter types %s in provided class %s"
+                .formatted(Arrays.toString(argumentTypes), objectClass.getName()));
     }
 
     public static Object tryGetFieldValue(Object object, String fieldName) {
@@ -143,25 +170,5 @@ public final class ReflectionProvider {
 //                })
                 .orElseThrow(() -> new ProvidedClassException("Can not get enum value object %s from provided class %s"
                         .formatted(name, enumClass.getName())));
-    }
-
-    public static String toStringMethodArguments(String methodName, Class<?>[] argumentTypes) {
-        return toStringMethodArguments(methodName, argumentTypes, false);
-    }
-
-    public static String toStringMethodArguments(String methodName, Class<?>[] argumentTypes, boolean verbose) {
-        return Arrays.stream(argumentTypes)
-                .map(classType -> {
-                    if (verbose) {
-                        return classType.getTypeName();
-                    } else {
-                        var classTypeName = classType.getTypeName();
-                        var splitClassTypeName = classTypeName.split("\\.");
-                        return splitClassTypeName[splitClassTypeName.length - 1];
-                    }
-                })
-                .reduce((curr, next) -> curr + ", " + next)
-                .map(args -> "%s(%s)".formatted(methodName, args))
-                .orElse("%s()".formatted(methodName));
     }
 }
