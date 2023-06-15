@@ -1,6 +1,6 @@
 package com.pixplaze.plugin.reflected;
 
-import static com.pixplaze.plugin.reflected.StringUtils.toStringTypes;
+import static com.pixplaze.plugin.reflected.StringUtils.*;
 
 public class ArgumentList {
     private boolean strongTypeMatch = false;
@@ -30,7 +30,7 @@ public class ArgumentList {
     public static ArgumentList split(Object ... typesAndArguments) {
         if (typesAndArguments.length % 2 != 0) {
             throw new IllegalArgumentException(
-                    "Еhe number of elements in the total array of types and arguments must be the same!" +
+                    "The number of elements in the total array of types and arguments must be the same! " +
                     "Provided:%n%s".formatted(toStringTypes(typesAndArguments)));
         }
         var countOfArguments = typesAndArguments.length / 2;

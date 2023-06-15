@@ -10,6 +10,7 @@ public final class HelloMessageTweak implements ServerTweak {
     @EventHandler
     public void sayHelloOnJoin(PlayerJoinEvent e) {
         var player = e.getPlayer();
+        
         player.sendMessage("Hello %s!\nWelcome on our server!".formatted(player.getName()));
     }
 

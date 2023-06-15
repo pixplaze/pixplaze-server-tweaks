@@ -1,6 +1,7 @@
 package com.pixplaze.plugin.reflected;
 
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 public class StringUtils {
 
@@ -25,20 +26,16 @@ public class StringUtils {
     }
 
     public static String toStringMethodArguments(String methodName, Class<?>[] argumentTypes) {
-        return toStringMethodArguments(methodName, argumentTypes, false);
+        return Arrays.stream(argumentTypes)
+                .map(StringUtils::toStringClassType)
+                .reduce((curr, next) -> curr + ", " + next)
+                .map(args -> "%s(%s)".formatted(methodName, args))
+                .orElse("%s()".formatted(methodName));
     }
 
-    public static String toStringMethodArguments(String methodName, Class<?>[] argumentTypes, boolean verbose) {
+    public static String toStringMethodArgumentsFullName(String methodName, Class<?>[] argumentTypes) {
         return Arrays.stream(argumentTypes)
-                .map(classType -> {
-                    if (verbose) {
-                        return classType.getTypeName();
-                    } else {
-                        var classTypeName = classType.getSimpleName();
-                        var splitClassTypeName = classTypeName.split("\\.");
-                        return splitClassTypeName[splitClassTypeName.length - 1];
-                    }
-                })
+                .map(StringUtils::toStringClassTypeFullName)
                 .reduce((curr, next) -> curr + ", " + next)
                 .map(args -> "%s(%s)".formatted(methodName, args))
                 .orElse("%s()".formatted(methodName));
@@ -47,16 +44,24 @@ public class StringUtils {
     public static String toStringTypes(Object ... objects) {
         return Arrays.stream(objects)
                 .map(Object::getClass)
-                .map(Class::getSimpleName)
-                .reduce((curr, next) -> String.join(", "))
-                .orElse("");
+                .map(StringUtils::toStringClassType)
+                .collect(Collectors.joining(", "));
     }
 
     public static String toStringTypesFullNames(Object ... objects) {
         return Arrays.stream(objects)
                 .map(Object::getClass)
-                .map(Class::getTypeName)
-                .reduce((curr, next) -> String.join(", "))
-                .orElse("");
+                .map(StringUtils::toStringClassTypeFullName)
+                .collect(Collectors.joining(", "));
+    }
+
+    public static String toStringClassType(Class<?> type) {
+        var classTypeName = type.toGenericString();
+        var splitClassTypeName = classTypeName.split("\\.");
+        return splitClassTypeName[splitClassTypeName.length - 1];
+    }
+
+    public static String toStringClassTypeFullName(Class<?> type) {
+        return type.toGenericString();
     }
 }
