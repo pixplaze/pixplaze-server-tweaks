@@ -23,8 +23,7 @@ public final class TweakManager {
     public TweakManager(PixplazeServerTweaks plugin) {
         this(plugin, new HashSet<>(Set.of(
                 new PermeableItemFramesTweak(),
-                new HelloMessageTweak(),
-                new LoadNamedTexturesTweak(plugin)
+                new HelloMessageTweak()
         )));
     }
 

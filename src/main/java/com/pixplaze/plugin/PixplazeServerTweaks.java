@@ -2,10 +2,8 @@ package com.pixplaze.plugin;
 
 import com.pixplaze.plugin.commands.TweakCommandExecutor;
 import com.pixplaze.plugin.commands.TweakTabCompleter;
-import com.pixplaze.plugin.tweaks.*;
-import org.bukkit.Color;
+import com.pixplaze.plugin.tweaks.TweakManager;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Objects;
@@ -40,14 +38,16 @@ public final class PixplazeServerTweaks extends JavaPlugin {
     public void onEnable() {
         this.saveDefaultConfig();
         tweakManager.loadTweaks(config);
-
-        var tweakCommand = Objects.requireNonNull(getCommand("tweak"));
-        var whatCommand = Objects.requireNonNull(getCommand("what"));
-
-        tweakCommand.setExecutor(tweakCommandExecutor);
-        tweakCommand.setTabCompleter(new TweakTabCompleter(tweakManager));
+        registerCommands();
     }
 
     @Override
     public void onDisable() {}
+
+    private void registerCommands() {
+        var tweakCommand = Objects.requireNonNull(getCommand("tweak"));
+
+        tweakCommand.setExecutor(tweakCommandExecutor);
+        tweakCommand.setTabCompleter(new TweakTabCompleter(tweakManager));
+    }
 }

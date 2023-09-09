@@ -2,9 +2,8 @@ package com.pixplaze.plugin.commands;
 
 import com.pixplaze.plugin.PixplazeServerTweaks;
 import com.pixplaze.plugin.tweaks.TweakManager;
-import com.pixplaze.plugin.util.TextComponentUtils;
-
-import net.kyori.adventure.text.Component;
+import com.pixplaze.plugin.util.TextUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -13,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class TweakCommandExecutor implements CommandExecutor {
     private final PixplazeServerTweaks plugin;
@@ -49,24 +49,24 @@ public class TweakCommandExecutor implements CommandExecutor {
                     return false;
                 }
                 case 2 -> {
-                    var arg0 = args[0];
-                    var arg1 = args[1];
-                    var action = TweakCommandAction.from(arg0);
+                    var actionInput = args[0];
+                    var targetInput = args[1];
+                    var action = TweakCommandAction.from(actionInput);
 
                     if (action == TweakCommandAction.STATUS) {
-                        return tryRunStatusCommand(arg1, sender);
+                        return tryRunStatusCommand(targetInput, sender);
                     }
 
                     if (action == TweakCommandAction.SHOW) {
-                        return tryRunShowCommand(arg1, sender);
+                        return tryRunShowCommand(targetInput, sender);
                     }
 
                     if (action == TweakCommandAction.ENABLE) {
-                        return tryRunEnableCommand(arg1, true, sender);
+                        return tryRunEnableCommand(targetInput, true, sender);
                     }
 
                     if (action == TweakCommandAction.DISABLE) {
-                        return tryRunEnableCommand(arg1, false, sender);
+                        return tryRunEnableCommand(targetInput, false, sender);
                     }
 
                     return false;
@@ -86,7 +86,7 @@ public class TweakCommandExecutor implements CommandExecutor {
         Optional.ofNullable(tweakManager.getTweak(tweakName))
                 .ifPresent(tweak -> {
                     success.set(true);
-                    sender.sendMessage(TextComponentUtils.getShowCommandMessage(tweak));
+                    sender.sendMessage(TextUtils.getShowCommandMessage(tweak));
                 });
         return success.get();
     }
@@ -96,31 +96,29 @@ public class TweakCommandExecutor implements CommandExecutor {
         Optional.ofNullable(tweakManager.getTweak(tweakName))
                 .ifPresent(tweak -> {
                     success.set(true);
-                    sender.sendMessage(TextComponentUtils.getStatusCommandMessage(tweak));
+                    sender.sendMessage(TextUtils.getTweakStatusMessage(tweak));
                 });
         return success.get();
     }
 
     private boolean tryRunListCommand(CommandSender sender) {
-        var title = Component.text("List Of Available Server Tweaks:")
-                .append(Component.text("\n"));
+        var tweakNameList = tweakManager.getLoadedTweaks().stream()
+                .map(TextUtils::getTweakStatusMessage)
+                .collect(Collectors.joining("\n"));
 
-        var list = title.append(tweakManager.getLoadedTweaks().stream()
-                .map(tweak -> Component.text()
-                        .append(Component.text(tweak.getTweakName()))
-                        .append(Component.text(": "))
-                        .append(TextComponentUtils.getColoredTweakStatus(tweak.isEnabled())))
-                .reduce((curr, next) -> curr.append(Component.text("\n")).append(next)).orElseThrow());
+        var message = String.format(
+                "List Of Available Server Tweaks:\n%s",
+                tweakNameList);
+        sender.sendMessage(message);
 
-        sender.sendMessage(list);
         return true;
     }
 
     private boolean tryRunEnableCommand(final String tweakName, final boolean enable, CommandSender sender) {
         var tweak = tweakManager.getTweak(tweakName);
-
+        sender.sendMessage("Command: %s, tweak.isEnabled() %s".formatted(enable, tweak.isEnabled()));
         if (tweak.isEnabled() == enable) {
-            var message = TextComponentUtils.getMessageIfAlreadyDefined(tweakName, enable);
+            var message = TextUtils.getMessageIfAlreadyDefined(tweakName, enable);
             sender.sendMessage(message);
             return true;
         }
@@ -128,7 +126,7 @@ public class TweakCommandExecutor implements CommandExecutor {
         if (enable) tweakManager.enableTweak(tweak);
         else tweakManager.disableTweak(tweak);
 
-        plugin.getServer().sendMessage(TextComponentUtils.getMessageIfDefined(tweakName, enable));
+        Bukkit.broadcastMessage(TextUtils.getMessageIfDefined(tweakName, enable));
 
         return true;
     }
