@@ -1,7 +1,7 @@
 name: PixplazeServerTweaks
 version: '${project.version}'
 main: com.pixplaze.plugin.PixplazeServerTweaks
-api-version: 1.18
+api-version: 1.18.2
 authors: [ Ki$$Ka, emberati ]
 
 commands:

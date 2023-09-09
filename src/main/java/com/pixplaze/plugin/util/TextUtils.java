@@ -8,13 +8,8 @@ public class TweakUtils {
      * @param status статус твика (true - включен, false - выключен);
      * @return строковое предстваление статуса твика.
      */
-    public static String isTweakEnabledLabel(boolean status) {
-
+    public static String getStatusLabel(boolean status) {
         return status ? "enabled" : "disabled";
-    }
-
-    public static String isTweakEnabledLabel(String status) {
-        return status.toLowerCase() + "d";
     }
 
     public static boolean booleanFromStatus(final String status) {

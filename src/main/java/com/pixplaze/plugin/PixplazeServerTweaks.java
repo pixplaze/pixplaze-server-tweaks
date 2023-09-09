@@ -2,16 +2,12 @@ package com.pixplaze.plugin;
 
 import com.pixplaze.plugin.commands.TweakCommandExecutor;
 import com.pixplaze.plugin.commands.TweakTabCompleter;
-import com.pixplaze.plugin.commands.WhatCommandExecutor;
 import com.pixplaze.plugin.tweaks.*;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Color;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.net.URL;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -50,8 +46,6 @@ public final class PixplazeServerTweaks extends JavaPlugin {
 
         tweakCommand.setExecutor(tweakCommandExecutor);
         tweakCommand.setTabCompleter(new TweakTabCompleter(tweakManager));
-
-        whatCommand.setExecutor(new WhatCommandExecutor());
     }
 
     @Override
